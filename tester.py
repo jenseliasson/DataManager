@@ -8,10 +8,8 @@ from threading import Semaphore, BoundedSemaphore
 import serial
 
 motes = []
-#historian = 'http://172.16.210.182:4001'
-historian = 'http://192.168.1.83:4001'
+historian = 'http://127.0.0.1:4001'
 sr = 'http://127.0.0.1:8442/serviceregistry'
-sensordata = ''
 
 def getSREnpoints():
   client = urllib2.build_opener(urllib2.HTTPHandler)
@@ -44,8 +42,7 @@ def worker(mote, delay):
 	  try:
 		sensor_sem.acquire()
 		json ='[\n  {\"bn\":\"' + mote + '\", \"bt\":'+str(int(time.time()))+'},\n'
-		#json += '  {"n":"/3303/0/5700","u":"Cel","v":' +str(round(random.uniform(22.0, 22.5), 2))+'}\n'
-		json += ('  ' + sensordata + '\n')
+		json += '  {"n":"/3303/0/5700","u":"Cel","v":' +str(round(random.uniform(22.0, 22.5), 2))+'}\n'
 		sensor_sem.release()
 		#json += '  {"n":"/3303/0/5700","u":"Cel", "t": 1, "v":' +str(round(random.uniform(12.0, 22.5), 2))+'}\n'
 		json += ']'
@@ -64,30 +61,6 @@ def worker(mote, delay):
 #  motes.append("mote"+str(x))
 motes.append("mote91")
 
-def ranging(sport, baud):
-	global sensordata
-
-	ser = serial.Serial(
-	    port=sport,\
-	    baudrate=baud,\
-	    parity=serial.PARITY_NONE,\
-	    stopbits=serial.STOPBITS_ONE,\
-	    bytesize=serial.EIGHTBITS,\
-	        timeout=0.1)
-
-	time.sleep(1)
-	print("connected to: " + ser.portstr)
-	while True:
-		line = ser.readline().strip()
-		if line:
-			#print "{\"v\": " + line[7:][:-2] + ", \"u\": \"mm\"},"
-			sensor_sem.acquire()
-			sensordata =  "{\"v\": " + line[7:][:-2] + ", \"u\": \"mm\"}"
-			#print sensordata
-			sensor_sem.release()
-	
-	ser.close()
-
 #url = getSREnpoints()
 #print url
 #exit(0)
@@ -95,7 +68,6 @@ def ranging(sport, baud):
 sensor_sem = BoundedSemaphore(value=1)
 
 try:
-  thread.start_new_thread(ranging, ("/dev/ttyACM0", 9600) )
   for mote in motes:
     thread.start_new_thread( worker, (mote, 5) )
 except:
