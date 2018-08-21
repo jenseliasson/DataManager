@@ -1,7 +1,7 @@
 Arrowhead DataManager
 
 Must fix:
-1) Username and password for web login (now hardcoded)
+1) Username and password for web login (now hardcoded to user/passowrd: test/test)
 2) AH Framework support for
    - Authorization & Acess control
    - Orchestration and Configuration client
