@@ -1,0 +1,45 @@
+<html>
+<head>
+
+</head>
+<title>Configuration</title>
+<body>
+<h1>Arrowhead Configuration</h1>
+<div>
+<table width="100%">
+<tr>
+  <td width="120px"><b>Setting</b></td>
+  <td><b>Value</b></td>
+</tr>
+<tr>
+  <td>SysName</td>
+  <td>lc1-DataManagement3</td>
+</tr>
+<tr>
+  <td>Port</td>
+  <td>4001</td>
+</tr>
+<tr>
+  <td>ServiceRegistry</td>
+  <td><input type="textfield" value="http://127.0.0.1:8442/serviceregistry"></input></td>
+</tr>
+<tr>
+  <td>DeviceRegistry</td>
+  <td>http://127.0.0.1:8443/deviceregistry</td>
+</tr>
+<tr>
+  <td>Configuration</td>
+  <td>http://10.8.0.34:3303/ahf/configuration</td>
+</tr>
+<tr>
+  <td>Authorisation</td>
+  <td>http://10.8.0.34:3401/ahf/authorization</td>
+</tr>
+</table>
+<input type="button" value="Save"/>
+<input type="button" value="Reboot"/>
+<br>
+<input type="button" value="Close" onClick="window.close()"/>
+</div>
+</body>
+</html>
