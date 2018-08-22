@@ -26,14 +26,13 @@ import org.json.simple.JSONArray;
 import org.json.simple.parser.ParseException;
 import org.json.simple.parser.JSONParser;
 
-import java.util.regex.Pattern;
 
 public class ProxyHTTPResource extends HttpServlet
 {
   Historian historian = null;
   Properties prop = null;
 
-  HashMap<String, String> map;
+  HashMap<String, String> map = null;
 
 
   /**
@@ -56,12 +55,14 @@ public class ProxyHTTPResource extends HttpServlet
 
 
   /**
-   * \fn
-   * \brief 
+   * This is the GET handler for the Proxy service
+   * \brief GET handler for /proxy/*
+   * \param request
+   * \param response
    */
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
   {
-    String res = "", filename=null, format="json";
+    String res = "", format="json";
 
     response.setStatus(HttpServletResponse.SC_OK);
     response.addHeader("Access-Control-Allow-Origin", "*");
@@ -78,7 +79,6 @@ public class ProxyHTTPResource extends HttpServlet
     if (request.getQueryString() != null) {
       //System.out.println("Parameters:");
       //System.out.println("format: " + request.getParameter("format"));
-      filename = request.getParameter("f");
       if (request.getParameter("format") != null)
 	format = request.getParameter("format");
     }
@@ -125,7 +125,7 @@ public class ProxyHTTPResource extends HttpServlet
     }
 
     if ( res == null) {
-      res = "null"; // Generate SigML+JSON/XML error response here
+      res = ""; // Generate SigML+JSON/XML error response here
     }
     response.getWriter().println(res);
 
@@ -134,8 +134,10 @@ public class ProxyHTTPResource extends HttpServlet
 
 
   /**
-   * \fn
-   * \brief
+   * This function fetches the entire payload of a request and returns a String
+   * @brief Fetches the body of an request
+   * @param request The HTTP request to use
+   * @return The body in String format
    */
   private static String getBody(HttpServletRequest request) throws IOException {
 
@@ -172,6 +174,12 @@ public class ProxyHTTPResource extends HttpServlet
   }
 
 
+  /**
+   * \fn
+   * \brief PUT handler
+   * \param request
+   * \param response
+   */
   protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
   {
     String res = "";
@@ -179,21 +187,21 @@ public class ProxyHTTPResource extends HttpServlet
     System.out.println("\nPath: "+ request.getRequestURI()+"?"+request.getQueryString());
 
     String data = getBody(request);
-    //InputStream body = request.getInputStream();
+    //InputStream body = request.getInputStream(); // for binary data later on
     System.out.println("##\n"+data+"\n##");
 
-    String mac = request.getRequestURI().replaceAll("/proxy/", "");
-    System.out.println("MAC="+mac);      
+    String systemname = request.getRequestURI().replaceAll("/proxy/", "");
+    System.out.println("systemname="+systemname);      
 
     /* store message in Proxy storage here */
-    if (!map.containsKey(mac)) {
-      System.out.println("Creating proxy instance for '"+mac+"'");
-      map.put(mac, data);
+    if (!map.containsKey(systemname)) {
+      System.out.println("Creating proxy instance for '"+systemname+"'");
+      map.put(systemname, data);
     }
 
     /* send response */
     response.addHeader("Access-Control-Allow-Origin", "*");
-    response.addHeader("Access-Control-Allow-Methods", "GET, PUT, POST");
+    response.addHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
     response.getWriter().println(res);
   }
 
@@ -202,7 +210,7 @@ public class ProxyHTTPResource extends HttpServlet
   {
     String res = null;
     response.addHeader("Access-Control-Allow-Origin", "*");
-    response.addHeader("Access-Control-Allow-Methods", "GET, PUT, POST");
+    response.addHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
     response.addHeader("Access-Control-Allow-Headers", "X-Requested-With");
 
     response.getWriter().println(res);
@@ -212,8 +220,10 @@ public class ProxyHTTPResource extends HttpServlet
   /**
    * \fn private String generateDeviceList(int mode) 
    * \brief
-   * \param mode 0 for all devices. 1 for 
+   * \param mode 0 for all device, 1 for recent, 2 for today
    * \return returns a HTML-string
+   * \bug Must support generation of either JSON, XML or CSV?
+   * \bug Must use the HashMap instead of the Historian database
    */
   private String generateDeviceList(int mode) {
     Connection conn = null;
@@ -222,16 +232,13 @@ public class ProxyHTTPResource extends HttpServlet
     String res = "";
 
     try {
-      Class.forName("com.mysql.jdbc.Driver");
+      Class.forName("com.mysql.jdbc.Driver"); //BUG: this should use the map to generate the device list. To be used for dash boards, visualization etc.
 
       //STEP 3: Open a connection
       //System.out.println("Connecting to database...");
       conn = DriverManager.getConnection("jdbc:mysql://"+prop.getProperty("dburl", "localhost")+"/" + prop.getProperty("database"), prop.getProperty("dbuser"), prop.getProperty("dbpassword"));
 
       stmt = conn.createStatement();
-      //String sql = "SELECT hwaddr, last_update FROM iot_devices WHERE last_update > '"+compdate+" 00:00:00';";
-      //ResultSet rs = stmt.executeQuery(sql);
-
       String sql = "";
       Calendar cal;
       SimpleDateFormat sdf;
