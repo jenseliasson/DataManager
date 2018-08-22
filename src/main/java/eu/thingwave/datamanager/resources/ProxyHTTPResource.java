@@ -62,7 +62,6 @@ public class ProxyHTTPResource extends HttpServlet
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
   {
     String res = "", filename=null, format="json";
-    int results = 1;
 
     response.setStatus(HttpServletResponse.SC_OK);
     response.addHeader("Access-Control-Allow-Origin", "*");
@@ -70,7 +69,7 @@ public class ProxyHTTPResource extends HttpServlet
     if (request.getParameter("wadl") != null) {
       response.setContentType("application/xml");
       response.setStatus(HttpServletResponse.SC_OK);
-      response.getWriter().println(historian.getHistorianWADL());
+      response.getWriter().println(historian.getHistorianWADL()); // I think is would be best to support an own Proxy WADL instead?
       return;
     }
 
@@ -78,10 +77,6 @@ public class ProxyHTTPResource extends HttpServlet
 
     if (request.getQueryString() != null) {
       //System.out.println("Parameters:");
-      //System.out.println("number: " + request.getParameter("number"));
-      //System.out.println("start: " + request.getParameter("start"));
-      //System.out.println("stop: " + request.getParameter("stop"));
-      //System.out.println("filename: " + request.getParameter("f"));
       //System.out.println("format: " + request.getParameter("format"));
       filename = request.getParameter("f");
       if (request.getParameter("format") != null)
@@ -112,29 +107,15 @@ public class ProxyHTTPResource extends HttpServlet
       return;
     }
 
-    /* specfic dev/sys was requested */
     path = path.replaceAll("/", "");
-    System.out.println("GET Proxy for path '"+path+"' requested");
+    //System.out.println("GET Proxy for path '"+path+"' requested");
 
-    String ct = new String();
-    if (filename != null) {
-      if (filename.equals("/") || filename.charAt(filename.length() - 1) == '/') {
-	//res = historian.getFileListfromPeer(path); 
-      } else {
-	//res = historian.getFilefromPeer(path, filename); 
-	response.setContentType(historian.getContentType(filename));
-	response.addHeader("Content-disposition", "attachment; filename="+filename);
-      }
-
-    } else {
-      //res = historian.getLastMessagefromPeer(path, ct);
-      if (map.containsKey(path)) {
-	res = map.get(path);
-      }
-      //System.out.println("GET: "+res);
+    /* return last message. BUG: support binary payloads as well! */
+    if (map.containsKey(path)) {
+      res = map.get(path);
     }
 
-    /* auto detect content type */
+    /* auto detect content type, BUG bad approach. Save this as metadata later on */
     if (res.contains("<?xml ")) {
       response.setContentType("application/xml");
     } else if (res.contains("{")) {
@@ -144,7 +125,7 @@ public class ProxyHTTPResource extends HttpServlet
     }
 
     if ( res == null) {
-      res = "null";
+      res = "null"; // Generate SigML+JSON/XML error response here
     }
     response.getWriter().println(res);
 
