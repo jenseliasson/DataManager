@@ -52,7 +52,7 @@ public class Main {
     InputStream input = null;
 
     try {
-      input = new FileInputStream("historian.properties");
+      input = new FileInputStream("datamanager.properties");
       prop.load(input);
     } catch (IOException ex) {
       ex.printStackTrace();
