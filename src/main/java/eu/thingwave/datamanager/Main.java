@@ -13,6 +13,7 @@ import org.eclipse.californium.core.CoapServer;
 import eu.thingwave.datamanager.resources.Login;
 import eu.thingwave.datamanager.resources.StorageResource;
 import eu.thingwave.datamanager.resources.StorageHTTPResource;
+import eu.thingwave.datamanager.resources.ProxyHTTPResource;
 import eu.thingwave.datamanager.resources.StatusHTTPResource;
 import eu.thingwave.datamanager.resources.DiskResource;
 import eu.thingwave.datamanager.resources.Historian;
@@ -126,6 +127,10 @@ public class Main {
       StorageHTTPResource hsr = new StorageHTTPResource(prop);
       hsr.setHistorian(historian);
       context.addServlet(new ServletHolder(hsr),"/storage/*");
+
+      ProxyHTTPResource psr = new ProxyHTTPResource(prop);
+      psr.setHistorian(historian);
+      context.addServlet(new ServletHolder(psr),"/proxy/*");
 
       StatusHTTPResource stsr = new StatusHTTPResource(prop);
       context.addServlet(new ServletHolder(stsr),"/status");
