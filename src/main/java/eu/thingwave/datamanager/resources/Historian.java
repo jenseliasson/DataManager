@@ -711,7 +711,7 @@ public class Historian {
     /* check for false injections XXX to be supported i.e. UUID, on-behalf-of, etc. */
     if (bn != null) {
       if (!bn.equals(mac)) {
-	System.err.println("insertSenML:: Injection attempt");
+	logger.warn("insertSenML:: Injection attempt");
 	return false;
       }
     }
@@ -977,7 +977,7 @@ public class Historian {
    * \brief saves a file to the local filesystem
    */
   public boolean storeFilefromPeer(String hwaddr, String filename, byte[] content) {
-    System.out.println("Storing file '"+filename+"' of length "+content.length+" from "+hwaddr + " to filesystem\n\t"+prop.getProperty("root-folder", "/tmp")+"/"+hwaddr+"/"+filename);
+    //System.out.println("Storing file '"+filename+"' of length "+content.length+" from "+hwaddr + " to filesystem\n\t"+prop.getProperty("root-folder", "/tmp")+"/"+hwaddr+"/"+filename);
 
     File file = null;
 
@@ -987,9 +987,9 @@ public class Historian {
       file = new File(base_folder+"/"+hwaddr);
       if (!file.exists() ) {
 	if (file.mkdirs()) {
-	  System.out.println("New device directory created!");
+	  logger.info("New device directory created!");
 	} else {
-	  System.out.println("Failed to create device directory! (\""+(base_folder+"/"+hwaddr)+"\")");
+	  logger.error("Failed to create device directory! (\""+(base_folder+"/"+hwaddr)+"\")");
 	  return false;
 	}
       }
@@ -1022,7 +1022,7 @@ public class Historian {
   public boolean putFilefromPeer(String hwaddr, String filename, int cf, byte[] content, long crc32value) {
     boolean ret = false;
     String sql;
-    System.out.println("Storing file '"+filename+"' with cf="+cf+" of length "+content.length+" from "+hwaddr + " in database");
+    //System.out.println("Storing file '"+filename+"' with cf="+cf+" of length "+content.length+" from "+hwaddr + " in database");
 
     Connection conn = null;
     Statement qstmt = null;
@@ -1035,7 +1035,6 @@ public class Historian {
       Class.forName("com.mysql.jdbc.Driver");
 
       //STEP 3: Open a connection
-      //System.out.println("Connecting to database...");
       conn = DriverManager.getConnection("jdbc:mysql://"+prop.getProperty("dburl", "localhost")+"/" + prop.getProperty("database"), prop.getProperty("dbuser"), prop.getProperty("dbpassword"));
 
       int id = macToID(hwaddr, conn);
@@ -1053,7 +1052,6 @@ public class Historian {
       rs.next();
 
       no_files = rs.getInt("count(id)");
-      //System.out.println("Number of files already in system is "+no_files);
       qstmt.close();
 
       /* file already exists, create new file name */
@@ -1079,7 +1077,7 @@ public class Historian {
 	  filenameid++;
 	} while (no_files != 0);
 	filename = filenamecopy;
-	System.out.println("New filename: '"+filename+"'");
+	//System.out.println("New filename: '"+filename+"'");
       }
 
       /* add file */
