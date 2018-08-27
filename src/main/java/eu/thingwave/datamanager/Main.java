@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.eclipse.californium.core.CoapServer;
 
 import eu.thingwave.datamanager.resources.Login;
@@ -40,13 +43,18 @@ public class Main {
   org.eclipse.jetty.server.Server jettyserver;
   ServiceRegistryClient src = null;
   String[] args;
+ 
+  Logger logger = null;
   
   public Main(String[] args)  {
     this.args = args;
+    logger = LogManager.getRootLogger();
+  
   }
 
   public boolean execute() {
-    System.out.println("This is the main file for DataManager system");
+    System.out.println("DataManager system starting up");
+    logger.trace("DataManager system starting up"); 
 
     prop = new Properties();
     InputStream input = null;
@@ -153,9 +161,8 @@ public class Main {
   }
 
   public static void main (String[] args) {
-
-	  Main m = new Main(args);
-	  m.execute();
+    Main m = new Main(args);
+    m.execute();
   }
 
 
