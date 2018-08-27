@@ -13,6 +13,9 @@ import java.io.InputStream;
 import java.util.Properties;
 import java.util.Calendar;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.File;
 import java.sql.*;
 
@@ -56,6 +59,7 @@ import eu.thingwave.datamanager.resources.StorageResource;
  */
 public class Historian {
   final String DEFAULT_ROOT = "/tmp/historian";
+  Logger logger = null;
 
   /* MySQL stuff */
   boolean enable_database = false;
@@ -74,8 +78,9 @@ public class Historian {
   public Historian(Properties prop) {
     this.prop = prop;
 
+    logger = LogManager.getRootLogger();
 
-    /* get hostname of gateway */
+    /* get hostname */
     try(BufferedReader br = new BufferedReader(new FileReader("/etc/hostname"))) {
       StringBuilder sb = new StringBuilder();
       String line = br.readLine();
@@ -95,9 +100,9 @@ public class Historian {
       String base_folder = prop.getProperty("root-folder", DEFAULT_ROOT);
       File file = new File(base_folder);
       if (file.mkdirs()) {
-	System.out.println("New root Directory created!");
+	logger.info("New root Directory created!");
       } else {
-	System.out.println("Failed to create root directory!");
+	logger.error("Failed to create root directory!");
       }
     }
 
@@ -108,14 +113,14 @@ public class Historian {
     if (prop.getProperty("enable-database", "false").equals("true")) {
       enable_database = true;
     } else
-      System.out.println("Database support disabled");
+      logger.info("Database support disabled");
 
     int debug_level = Integer.parseInt(prop.getProperty("debuglevel", "-1"));
     if (debug_level > 0 && enable_database) {
-      System.out.println(prop.getProperty("database"));
-      System.out.println(prop.getProperty("dbuser"));
+      //System.out.println(prop.getProperty("database"));
+      //System.out.println(prop.getProperty("dbuser"));
       //System.out.println(prop.getProperty("dbpassword"));
-      System.out.println(prop.getProperty("dbprefix"));
+      //System.out.println(prop.getProperty("dbprefix"));
     } 
 
     dburl = prop.getProperty("dburl", "127.0.0.1:3306");
@@ -128,16 +133,15 @@ public class Historian {
       Connection conn = null;
       try {
 	Class.forName("com.mysql.jdbc.Driver");
-	//conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
 	conn = DriverManager.getConnection("jdbc:mysql://"+prop.getProperty("dburl", "localhost")+"/" + prop.getProperty("database"), prop.getProperty("dbuser"), prop.getProperty("dbpassword"));
-	System.out.println("Connected to MySQL database");
+	logger.info("Connected to MySQL database");
 	checkTables(conn, DB_DATABASE);
 	conn.close();
       } catch(SQLException se){
-	System.out.println("Failed to make connection!");
+	logger.error("Failed to make connection!");
 	se.printStackTrace();
       } catch(Exception e){
-	System.out.println("Failed to make connection!");
+	logger.error("Failed to make connection!");
 	e.printStackTrace();
       }
     }
@@ -164,7 +168,7 @@ public class Historian {
      Session session = Session.getDefaultInstance(props,
      new javax.mail.Authenticator() {
      protected PasswordAuthentication getPasswordAuthentication() {
-     return new PasswordAuthentication("jens.eliasson@thingwave.eu","waffle2015");
+     return new PasswordAuthentication("***","*****");
      }
      });
 
