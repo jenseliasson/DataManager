@@ -53,8 +53,7 @@ public class Main {
   }
 
   public boolean execute() {
-    System.out.println("DataManager system starting up");
-    logger.trace("DataManager system starting up"); 
+    logger.info("DataManager system starting up"); 
 
     prop = new Properties();
     InputStream input = null;
@@ -86,7 +85,7 @@ public class Main {
     boolean srok =  false;
     if (!ahfsrUrl.equals("")) {
       src = new ServiceRegistryClient(ahfsrUrl);
-      System.out.println("Arrowhead enabled, using ServiceRegistry: " + ahfsrUrl); 
+      logger.info("Arrowhead enabled, using ServiceRegistry: " + ahfsrUrl); 
       //String srresp = src.remove(prop.getProperty("SysName", ""), "http://127.0.0.1:4001/storage", "_historian._http._tcp");
       //srresp = src.register(prop.getProperty("SysName", ""), "http://127.0.0.1", "storage", Integer.parseInt(prop.getProperty("HTTP-port", "0")), "_historian._http._tcp");
       String myendpint = "http://172.16.210.182:4001/storage";
@@ -97,7 +96,7 @@ public class Main {
     }
 
     /* start CoAP server */
-    System.out.println("Starting CoAP server"); 
+    logger.info("Starting CoAP server"); 
     server = new CoapServer(port);
     Historian historian = new Historian(prop);	
 
@@ -145,8 +144,8 @@ public class Main {
 
       jettyserver.start();
     } catch (Exception e) {
-	    System.out.println("Could not start Jetty HTTP server on port "+port);
-	    return false;
+      logger.error("Could not start Jetty HTTP server on port "+port);
+      return false;
     }
 
     return true;
@@ -155,8 +154,9 @@ public class Main {
   public boolean shutDown() throws Exception {
     String srresp = src.remove(prop.getProperty("SysName", ""), "http://arrowhead.ddns.net/storage52", "_historian._http._tcp");
     if (srresp == null)
-      System.out.println("Error: could not deregister");
+      logger.error("Error: could not deregister");
     jettyserver.stop();
+
     return true;
   }
 
@@ -168,22 +168,23 @@ public class Main {
 
 
   static private class ShutdownThread extends Thread {
-	  Main parent;
-	  public ShutdownThread(Main p) {
-		  super();
-		  this.parent = p;
-	  }
-	  public void run() {
-		  try {
-			  Thread.sleep(50);
-			  System.out.println("Shutting down ...");
-			  parent.shutDown();
-			  //server.stop();
+    Main parent;
+    public ShutdownThread(Main p) {
+      super();
+      this.parent = p;
+    }
+    public void run() {
+      Logger logger = LogManager.getRootLogger();
+      try {
+	Thread.sleep(50);
+	logger.info("Shutting down ...");
+	parent.shutDown();
+	//server.stop();
 
-		  } catch (InterruptedException e) {
-			  e.printStackTrace();
-		  } catch (Exception e) {
-		  }
-	  }
+      } catch (InterruptedException e) {
+	e.printStackTrace();
+      } catch (Exception e) {
+      }
+    }
   }
 }

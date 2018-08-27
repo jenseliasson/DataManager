@@ -146,62 +146,7 @@ public class Historian {
       }
     }
 
-    //sendMail("jens.eliasson@gmail.com", "Testing Subject");
   }
-
-
-
-
-  /**
-   * \fn public int sendMail()
-   *
-   */
-  /*
-     public int sendMail(String recipient, String subject) {
-     Properties props = new Properties();
-     props.put("mail.smtp.host", "send.one.com");
-     props.put("mail.smtp.socketFactory.port", "465");
-     props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-     props.put("mail.smtp.auth", "true");
-     props.put("mail.smtp.port", "465");
-
-     Session session = Session.getDefaultInstance(props,
-     new javax.mail.Authenticator() {
-     protected PasswordAuthentication getPasswordAuthentication() {
-     return new PasswordAuthentication("***","*****");
-     }
-     });
-
-     try {
-     Message message = new MimeMessage(session);
-     message.setFrom(new InternetAddress("jens.eliasson@thingwave.eu"));
-     message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipient));
-     message.setSubject(subject);
-     message.setText("Hi," +
-     "\n\nThis is ThingWave's Historian from "+hostname+"!\n");
-
-  /*MimeBodyPart messageBodyPart = new MimeBodyPart();
-  String filename = "/etc/hostname";
-  DataSource source = new FileDataSource(filename);
-  messageBodyPart.setDataHandler(new DataHandler(source));
-  messageBodyPart.setFileName(filename);
-  Multipart multipart = new MimeMultipart();
-  multipart.addBodyPart(messageBodyPart);
-
-  message.setContent(multipart);* x/
-
-  Transport.send(message);
-
-  } catch (MessagingException me) {
-  System.out.println("");
-  me.printStackTrace();
-  return -1;
-  }
-
-  return 0;
-  }
-   */
-
 
 
   /**
