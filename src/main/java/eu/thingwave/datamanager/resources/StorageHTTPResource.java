@@ -139,9 +139,9 @@ public class StorageHTTPResource extends HttpServlet
 			response.getWriter().println(res);
 
 			/* auto detect content type */
-			if (res.contains("<?xml ")) {
+			if (res.contains("<?xml ")) { //BUG: improve this by testing to create an XML Object
 				response.setContentType("application/xml");
-			} else if (res.contains("{")) {
+			} else if (res.contains("{")) { //BUG: improve this by testing to create a JSON Object
 				response.setContentType("application/json");
 			}
 
@@ -250,7 +250,7 @@ public class StorageHTTPResource extends HttpServlet
 				boolean result = historian.insertSenML(mac, json, conn);
 				if (result == false) {
 					String sql = "INSERT INTO iot_devices(hwaddr, name, last_update) VALUES(\""+mac+"\", \""+mac+"\", NOW());";
-					System.out.println("SQL: "+sql);
+					//System.out.println("SQL: "+sql);
 					stmt.execute(sql);
 					stmt.close();
 					//int id = historian.macToID(mac, conn);
