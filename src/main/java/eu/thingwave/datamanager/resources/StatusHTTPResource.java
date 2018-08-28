@@ -58,13 +58,9 @@ public class StatusHTTPResource extends HttpServlet
    */
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
   {
-    //String res = "[\n";
-    //res += "  {\"SysName\": \""+prop.getProperty("SysName", "")+"\"},\n";
-    //String linebegin = "", lineend="";
     JSONArray reslist = new JSONArray();
 
     if (!prop.getProperty("ahf-sr", "").equals("")) {
-      //res += "  {\"name\": \"_ahf._sr.tcp.xxx\", \"type\": \"ServiceRegistry\", \"URI\": \""+prop.getProperty("ahf-sr", "")+"\", \"status\": "+srok+"}"; linebegin = ",\n";
       JSONObject obj = new JSONObject();
       obj.put("name", "_ahf._sr.tcp.xxx");
       obj.put("type", "ServiceRegistry");
@@ -73,7 +69,6 @@ public class StatusHTTPResource extends HttpServlet
       reslist.add(obj);
     }
     if (!prop.getProperty("ahf-dr", "").equals("")) {
-      //res += linebegin+ "  {\"name\": \"_ahf._dr.tcp.xxx\", \"type\": \"DeviceRegistry\", \"URI\": \""+prop.getProperty("ahf-dr", "")+"\", \"status\": "+drok+"}"; linebegin = ",\n";
       JSONObject obj = new JSONObject();
       obj.put("name", "_ahf._dr.tcp.xxx");
       obj.put("type", "DeviceRegistry");
@@ -82,7 +77,6 @@ public class StatusHTTPResource extends HttpServlet
       reslist.add(obj);
     }
     if (!prop.getProperty("ahf-orch", "").equals("")) {
-      //res +=  linebegin + "  {\"name\": \"_ahf._orch.tcp.xxx\", \"type\": \"Orchestration\", \"URI\": \""+prop.getProperty("ahf-orch", "")+"\", \"status\": "+orchok+"}\n";
       JSONObject obj = new JSONObject();
       obj.put("name", "_ahf._orch.tcp.xxx");
       obj.put("type", "Orchestration");
@@ -91,8 +85,6 @@ public class StatusHTTPResource extends HttpServlet
       reslist.add(obj);
     } 
 
-    //res += "\n]";
-    //response.getWriter().println(res);
     response.getWriter().println(reslist);
 
     return;
