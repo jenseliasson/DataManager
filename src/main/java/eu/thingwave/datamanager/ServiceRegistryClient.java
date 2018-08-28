@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
@@ -28,10 +31,13 @@ public class ServiceRegistryClient {
   private final String USER_AGENT = "Mozilla/5.0";
   String endpoint = null;
 
+  Logger logger = null;
+
   public ServiceRegistryClient(String endpoint) {
     this.endpoint = endpoint;
 
-    System.out.println("Starting ServiceRegistryClient");
+    logger = LogManager.getRootLogger();
+    logger.info("Starting ServiceRegistryClient");
   }
 
   public String deregister(){
@@ -64,12 +70,13 @@ public class ServiceRegistryClient {
     p+= "  },\n";
     p+= "  \"serviceURI\": \""+serviceuri+"\"\n";
     p+="}\n";
-    System.out.println(p);
+    //System.out.println(p);
+
     try {
       response = this.sendRequest("POST", endpoint + "/register", null, p);
-      System.out.println("AH/SR response: " + response);
+      logger.info("AH/SR response: " + response);
     } catch(Exception e){
-      System.out.println("AH/SR: register error: " + e.toString());
+      logger.error("AH/SR: register error: " + e.toString());
     }
 
     return response;
@@ -80,29 +87,30 @@ public class ServiceRegistryClient {
     String response = null;
 
     String p = new String("");
-p+= "{\n";
-p+= "  \"providedService\": {\n";
-p+= "    \"serviceDefinition\": \""+serviceType+"\",\n";
-p+= "    \"interfaces\": [\n";
-p+= "      \"json\"\n";
-p+= "    ],\n";
-p+= "    \"serviceMetadata\": {\n";
-//p+= "      \"unit": "celsius\"\n";
-p+= "    }\n";
-p+= "  },\n";
-p+= "  \"provider\": {\n";
-p+= "    \"systemName\": \""+sysName+"\",\n";
-p+= "    \"address\": \"endpoint\"\n";
-//    "port": 8454
-p+= "  },\n";
-p+= "  \"serviceURI\": \""+serviceurl+"\"\n";
-p+="}\n";
-System.out.println(p);
+    p+= "{\n";
+    p+= "  \"providedService\": {\n";
+    p+= "    \"serviceDefinition\": \""+serviceType+"\",\n";
+    p+= "    \"interfaces\": [\n";
+    p+= "      \"json\"\n";
+    p+= "    ],\n";
+    p+= "    \"serviceMetadata\": {\n";
+    //p+= "      \"unit": "celsius\"\n";
+    p+= "    }\n";
+    p+= "  },\n";
+    p+= "  \"provider\": {\n";
+    p+= "    \"systemName\": \""+sysName+"\",\n";
+    p+= "    \"address\": \"endpoint\"\n";
+    //    "port": 8454
+    p+= "  },\n";
+    p+= "  \"serviceURI\": \""+serviceurl+"\"\n";
+    p+="}\n";
+  //System.out.println(p);
+
     try {
       response = this.sendRequest("PUT", endpoint + "/remove", null, p);
-      System.out.println("AH/SR response: " + response);
+      logger.info("AH/SR remove response: " + response);
     } catch(Exception e){
-      System.out.println("AH/SR: remove error: " + e.toString());
+      logger.error("AH/SR: remove error: " + e.toString());
     }
 
     return response;
@@ -121,8 +129,8 @@ System.out.println(p);
     con.setRequestProperty("User-Agent", USER_AGENT);
 
     int responseCode = con.getResponseCode();
-    System.out.println("\nSending 'GET' request to URL : " + url);
-    System.out.println("Response Code : " + responseCode);
+    logger.info("\nSending 'GET' request to URL : " + url);
+    logger.info("Response Code : " + responseCode);
 
     BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
     String inputLine;
@@ -159,8 +167,8 @@ System.out.println(p);
     //wr.close();
 
     int responseCode = con.getResponseCode();
-    System.out.println("\nSending '"+method+"' request to URL : " + url);
-    System.out.println("Response Code : " + responseCode);
+    logger.info("\nSending '"+method+"' request to URL : " + url);
+    logger.info("Response Code : " + responseCode);
 
     BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
     String inputLine;
