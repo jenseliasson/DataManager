@@ -187,39 +187,63 @@ public class Historian {
   public String generateErrorMessage(int id) {
     Calendar cal = Calendar.getInstance();
 
-    String res = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-    res += "<sigml xmlns=\"urn:ietf:params:xml:ns:sigml\"\n";
-    res += "       bn=\"" + "urn:sys:name:historian.test.arrowhead.eu" + "\"\n";
-    res += "       bt=\""+(cal.getTimeInMillis()/1000)+"\">\n";
+    JSONArray reslist = new JSONArray();
+    JSONObject obj = new JSONObject();
+    obj.put("bn", prop.getProperty("sysName",""));
+    obj.put("bt", (cal.getTimeInMillis()/1000));
+    reslist.add(obj);
 
     switch (id) {
       case 0:
-	res += "  <x n=\"cause\" sv=\"Internal database error\"/>\n";
+	obj = new JSONObject();
+	obj.put("n", "cause");
+	obj.put("sv", "Internal database error");
+	reslist.add(obj);
 	break;
       case 1:
-	res += "  <x n=\"cause\" sv=\"Unknown device\"/>\n";
+	obj = new JSONObject();
+	obj.put("n", "cause");
+	obj.put("sv", "Unknown system");
+	reslist.add(obj);
 	break;
       case 20:
-	res += "  <x n=\"cause\" sv=\"Bad origin\"/>\n";
+	obj = new JSONObject();
+	obj.put("n", "cause");
+	obj.put("sv", "Bad origin");
+	reslist.add(obj);
 	break;
       case 100:
-	res += "  <x n=\"cause\" sv=\"Illegal content-type\"/>\n";
+	obj = new JSONObject();
+	obj.put("n", "cause");
+	obj.put("sv", "Illegal content-type");
+	reslist.add(obj);
 	break;
       case 101:
-	res += "  <x n=\"cause\" sv=\"Illegal semantics\"/>\n";
+	obj = new JSONObject();
+	obj.put("n", "cause");
+	obj.put("sv", "Illegal semantics");
+	reslist.add(obj);
 	break;
       case 102:
-	res += "  <x n=\"cause\" sv=\"Empty document\"/>\n";
+	obj = new JSONObject();
+	obj.put("n", "cause");
+	obj.put("sv", "Empty document");
+	reslist.add(obj);
 	break;
       case 103:
-	res += "  <x n=\"cause\" sv=\"Illegal filename\"/>\n";
+	obj = new JSONObject();
+	obj.put("n", "cause");
+	obj.put("sv", "Illegal filename");
+	reslist.add(obj);
 	break;
       default:
-	res += "  <x n=\"cause\" sv=\"Unknown error\"/>\n";
+	obj = new JSONObject();
+	obj.put("n", "cause");
+	obj.put("sv", "Unknown error");
+	reslist.add(obj);
     }
-    res += "</sigml>";
 
-    return res;
+    return reslist.toString();
   }
 
 
@@ -264,17 +288,19 @@ public class Historian {
   }
 
 
+  /**
+   * @fn
+   *
+   */
   public String getLastMessagefromPeer(String hwaddr, String content_type) {
     Connection conn = null;
     Statement stmt = null;
     boolean db_ok = true;
     String res = "";
+    JSONArray reslist = new JSONArray();
 
     try {
       Class.forName("com.mysql.jdbc.Driver");
-
-      //STEP 3: Open a connection
-      //System.out.println("Connecting to database...");
       conn = DriverManager.getConnection("jdbc:mysql://"+prop.getProperty("dburl", "localhost")+"/" + prop.getProperty("database"), prop.getProperty("dbuser"), prop.getProperty("dbpassword"));
 
       int id = macToID(hwaddr, conn);
@@ -294,39 +320,46 @@ public class Historian {
 
       res  = "[\n";
       res += "  {\"bn\": \""+hwaddr+"\", \"bt\": "+ts+"}";
+      JSONObject obj = new JSONObject();
+      obj.put("bn", hwaddr);
+      obj.put("bt", ts);
+      reslist.add(obj);
 
       sql = "SELECT * FROM iot_entries WHERE did="+id+" AND mid="+_id+";";
       rs = stmt.executeQuery(sql);
       while (rs.next()) {
 
-	res += ",\n  {\"n\": \""+rs.getString("n")+"\"";
+	obj = new JSONObject();
+	obj.put("n", rs.getString("n"));
 
 	rs.getInt("t");
-	if (!rs.wasNull())
-	  res += ", \"t\": "+(rs.getInt("t") - ts);
+	if (!rs.wasNull()){
+	  if ((rs.getInt("t") - ts) != 0)
+	    obj.put("t", rs.getInt("t") - ts);
+	}
 
 	rs.getString("u");
-	if (!rs.wasNull())
-	  res += ", \"u\": \""+rs.getString("u")+"\"";
+	if (!rs.wasNull()) {
+	  obj.put("u", rs.getString("u"));
+	}
 
 	rs.getString("sv");
 	if (!rs.wasNull()) {
-	  res += ", \"sv\": \""+rs.getString("sv")+"\"}";
+	  obj.put("sv", rs.getString("sv"));
 	} else {
 	  rs.getDouble("v");
 	  if (!rs.wasNull()) {
-	    res += ", \"v\": \""+rs.getDouble("v")+"\"}";
+	    obj.put("v", rs.getDouble("v"));
 	  } else {
 	    rs.getBoolean("bv");
-	    if (!rs.wasNull())
-	      res += ", \"bv\": \""+rs.getBoolean("bv")+"\"}";
-	    else
-	      res += "}";
+	    if (!rs.wasNull()) {
+	      obj.put("bv", rs.getBoolean("bv"));
+	    } 
 	  }
 	}
+	reslist.add(obj);
       }
 
-      res += "\n]";
 
       rs.close();
       stmt.close();
@@ -334,14 +367,14 @@ public class Historian {
 
     } catch(SQLException se){
       se.printStackTrace();
-      res = generateErrorMessage(0);
+      return generateErrorMessage(0);
     } catch(Exception e){
       //Handle errors for Class.forName
       e.printStackTrace();
-      res = generateErrorMessage(-1);
+      return generateErrorMessage(-1);
     }
 
-    return res;
+    return reslist.toString();
   }
 
 
@@ -514,11 +547,11 @@ public class Historian {
 
     } catch(SQLException se){
       se.printStackTrace();
-      res = generateErrorMessage(0);
+      return generateErrorMessage(0);
     } catch(Exception e){
       //Handle errors for Class.forName
       e.printStackTrace();
-      res = generateErrorMessage(-1);
+      return generateErrorMessage(-1);
     }
 
     return res;
