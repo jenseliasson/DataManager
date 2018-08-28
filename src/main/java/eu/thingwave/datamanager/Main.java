@@ -88,11 +88,12 @@ public class Main {
       logger.info("Arrowhead enabled, using ServiceRegistry: " + ahfsrUrl); 
       //String srresp = src.remove(prop.getProperty("SysName", ""), "http://127.0.0.1:4001/storage", "_historian._http._tcp");
       //srresp = src.register(prop.getProperty("SysName", ""), "http://127.0.0.1", "storage", Integer.parseInt(prop.getProperty("HTTP-port", "0")), "_historian._http._tcp");
-      String myendpint = "http://172.16.210.182:4001/storage";
+      String myendpint = "http://172.16.210.182:4001/storage"; //BUG, fix this
       String srresp = src.remove(prop.getProperty("SysName", ""), "http://172.16.210.182:4001/storage", "_ahfc-dm-historian._http._tcp");
       srresp = src.register(prop.getProperty("SysName", ""), "http://arrowhead.ddns.net" /*"http://172.16.210.182"*/, "storage", Integer.parseInt(prop.getProperty("HTTP-port", "0")), "_ahfc-dm-historian._http._tcp");
-      if (srresp != null)
+      if (srresp != null) {
 	srok = true;
+      }
     }
 
     /* start CoAP server */
@@ -124,7 +125,7 @@ public class Main {
       resource_handler.setResourceBase("www");
 
       HandlerList handlers = new HandlerList();
-      handlers.setHandlers(new Handler[] { resource_handler, context, new DefaultHandler() });
+      handlers.setHandlers(new Handler[] { resource_handler, context, new DefaultHandler() }); //BUG, fix so that a user cannot get web pages without a login session
       jettyserver.setHandler(handlers);
       //jettyserver.setHandler(context);
 
@@ -141,6 +142,7 @@ public class Main {
 
       StatusHTTPResource stsr = new StatusHTTPResource(prop);
       context.addServlet(new ServletHolder(stsr),"/status");
+      stsr.setStatus("SR", srok);
 
       jettyserver.start();
     } catch (Exception e) {

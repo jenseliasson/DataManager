@@ -49,6 +49,7 @@ public class StatusHTTPResource extends HttpServlet
       orchok = status;
   }
 
+
   /**
    *
    *
@@ -72,7 +73,9 @@ public class StatusHTTPResource extends HttpServlet
 
     res += "\n]";
     response.getWriter().println(res);
+
     return;
   }
+
 }
 

@@ -8,6 +8,9 @@ import java.util.LinkedList;
 import java.util.*;
 import java.text.SimpleDateFormat;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javax.servlet.*;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -29,20 +32,22 @@ import java.util.regex.Pattern;
 public class Login extends HttpServlet
 {
   Properties prop = null;
+  Logger logger = null;
 
   public Login(Properties prop){
     this.prop = prop;
+    logger = LogManager.getRootLogger();
   }
 
 
 
   /**
-    *
-    *
-    */
+   *
+   *
+   */
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
   {
-    System.out.println("\nPath: "+ request.getRequestURI()+"?"+request.getQueryString());
+    logger.info("\nPath: "+ request.getRequestURI()+"?"+request.getQueryString());
 
     if (request.getQueryString() != null) {
       response.setContentType("application/json");
@@ -52,50 +57,51 @@ public class Login extends HttpServlet
 
   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
   {
-/*String out = "";
-    response.setContentType("text/plain");
+    /*String out = "";
+      response.setContentType("text/plain");
 
-    Enumeration<String> parameterNames = request.getParameterNames();
-    while (parameterNames.hasMoreElements()) {
+      Enumeration<String> parameterNames = request.getParameterNames();
+      while (parameterNames.hasMoreElements()) {
       String paramName = parameterNames.nextElement();
       out += (paramName);
       out += ("\n");
 
       String[] paramValues = request.getParameterValues(paramName);
       for (int i = 0; i < paramValues.length; i++) {
-	String paramValue = paramValues[i];
-	out += ("t" + paramValue);
-	out +=("\n");
+      String paramValue = paramValues[i];
+      out += ("t" + paramValue);
+      out +=("\n");
       }
 
-    }
+      }
 
-    response.getWriter().println(out);*/
+      response.getWriter().println(out);*/
 
-    
-       String res = "doPost";
 
-       String username = request.getParameter("username");
-       String password = request.getParameter("password");
+    String res = "doPost";
+
+    String username = request.getParameter("username");
+    String password = request.getParameter("password");
     //User user = userService.find(username, password);
-    System.out.println("login-doPost:\n "+ username + ", "+password);
+    logger.info("login-doPost:\n "+ username + ", "+password);
 
 
     if (username != null && password != null) {
-    if (username.equals(prop.getProperty("webuser", "test")) && password.equals(prop.getProperty("webpassword", "test"))) {
-      if (request.getSession() != null)
-	      response.sendRedirect("main2.html");
-      else {
-	     request.getSession().setAttribute("user", username);
-	     response.sendRedirect("main.html");
-      }
-    } else {
-      request.setAttribute("error", "Unknown user, please try again");
-      request.getRequestDispatcher("/index.html").forward(request, response);
+      if (username.equals(prop.getProperty("webuser", "test")) && password.equals(prop.getProperty("webpassword", "test"))) { // BUG, fix this
+	if (request.getSession() != null) {
+	  request.getSession().setAttribute("user", username);
+	  response.sendRedirect("main2.html");
+	} else {
+	  request.getSession().setAttribute("user", username);
+	  response.sendRedirect("main.html");
+	}
+      } else {
+	request.setAttribute("error", "Unknown user, please try again");
+	request.getRequestDispatcher("/index.html").forward(request, response);
       }
     }
 
-    System.out.println("login-doPost:\nPath: "+ request.getRequestURI()+"?"+request.getQueryString());
+    logger.info("login-doPost:\nPath: "+ request.getRequestURI()+"?"+request.getQueryString());
 
     response.getWriter().println(res);
   }
