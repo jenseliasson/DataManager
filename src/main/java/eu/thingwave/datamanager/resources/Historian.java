@@ -405,11 +405,11 @@ public class Historian {
 
       stmt = conn.createStatement();
       String sql = "SELECT id, ts FROM iot_messages WHERE did="+id+" AND ts > UNIX_TIMESTAMP('"+start+"') AND ts < UNIX_TIMESTAMP('"+stop+"') ORDER BY ts DESC LIMIT "+results+";";
-      System.out.println("SQL: "+sql);
+      //System.out.println("SQL: "+sql);
       ResultSet rsm = stmt.executeQuery(sql);
 
       /* generate CSV message */
-      res = "";
+      res = "t, n, v, u\n";
       /*res = "% @Generated-by: ThingWave historian\n";
 	res += "% @Generated-at: 2017-01-09T13:04:49\n";
 	res += "% @bn: "+hwaddr+"\n";
@@ -419,8 +419,7 @@ public class Historian {
       while(rsm.next() && results > 0){
 	mid = rsm.getInt("id");
 	int bt = rsm.getInt("ts");
-	System.out.println("Message id (mid): "+mid);
-
+	//System.out.println("Message id (mid): "+mid);
 
 	stmt = conn.createStatement();
 	if (signals.length == 0) {
@@ -435,7 +434,7 @@ public class Historian {
 	  String signalcond = sb.toString();
 	  sql = "SELECT * FROM iot_entries WHERE did="+id+" AND mid="+mid+" AND n IN ("+signalcond+") ORDER BY t DESC LIMIT " + results + ";";
 	}
-	System.out.println("SQL: "+sql);
+	//System.out.println("SQL: "+sql);
 
 	ResultSet rs = stmt.executeQuery(sql);
 
@@ -629,6 +628,7 @@ public class Historian {
    *
    */
   //https://gist.github.com/ihumanable/929039
+  // Use Apache POI !
   public byte[] getExcelDatafromPeer(String hwaddr, int results, String[] channels, String[] conditions, String start, String stop) {
     byte[] doc = new byte[12+10+8+4];
 
