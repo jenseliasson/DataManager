@@ -199,15 +199,19 @@ public class StorageHTTPResource extends HttpServlet
 
       } else if (format.equals("excel")) {
 	response.addHeader("Content-type", "application/force-download");
-	response.addHeader("Content-type", "application/octet-stream");
+	//response.addHeader("Content-type", "application/octet-stream");
 	response.addHeader("Content-type", "application/download");
+	response.addHeader("Content-type", "application/vnd.ms-excel");
 	response.addHeader("Content-Disposition", "attachment;filename=file.xls");
 	response.addHeader("Content-Transfer-Encoding", "binary");
 
 	String[] sigs = signals.toArray(new String[signals.size()]);
 	byte[] doc = historian.getExcelDatafromPeer(path, results, sigs, null, start_date, end_date);
-	OutputStream os = response.getOutputStream();
-	os.write(doc, 0, doc.length);
+	if (doc != null) {
+	  OutputStream os = response.getOutputStream();
+	  os.write(doc, 0, doc.length);
+	} else { //generate error 
+	}
       }
     }
 

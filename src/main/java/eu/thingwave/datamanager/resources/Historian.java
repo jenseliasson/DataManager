@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,6 +59,11 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import org.jtransforms.fft.DoubleFFT_1D;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import eu.thingwave.datamanager.resources.StorageResource;
 
@@ -621,69 +627,38 @@ public class Historian {
     return res;
   }
 
-
   /**
-   * \fn public String getSenMLDatafromPeer(String hwaddr, String format, int results, String[] channels, String[] conditions, String start, String stop)
-   * \brief Returns JSON or XML encoded SenML
+   * \fn public byte[] getExcelDatafromPeer(String hwaddr, int results, String[] channels, String[] conditions, String start, String stop)
+   * \brief Returns Excel encoded data
    *
    */
-  //https://gist.github.com/ihumanable/929039
-  // Use Apache POI !
   public byte[] getExcelDatafromPeer(String hwaddr, int results, String[] channels, String[] conditions, String start, String stop) {
-    byte[] doc = new byte[12+10+8+4];
+    XSSFWorkbook workbook = new XSSFWorkbook();
+    XSSFSheet sheet = workbook.createSheet("Sheet1");
+    logger.info("Generating Excel file");
 
-    //BOF marker
-    doc[0] = 0x09;
-    doc[1] = 0x08; 
+    Row row = sheet.createRow(0);
+    Cell cell = row.createCell(0);
+    cell.setCellValue((String) "t");
+    cell = row.createCell(1);
+    cell.setCellValue((String) "n");
+    cell = row.createCell(2);
+    cell.setCellValue((String) "v");
+    cell = row.createCell(3);
+    cell.setCellValue((String) "u");
 
-    doc[2] = 0x08;
-    doc[3] = 0x00; 
-
-    doc[4] = 0x00;
-    doc[5] = 0x00;
-
-    doc[6] = 0x10;
-    doc[7] = 0x00;
-
-    doc[8] = 0x00;
-    doc[9] = 0x00;
-
-    doc[10] = 0x00;
-    doc[11] = 0x00;
-
-    //first number
-    doc[12] = 0x03;
-    doc[13] = 0x02;
-
-    doc[14] = 14;
-    doc[15] = 0x00;
-
-    doc[16] = 0x00;
-    doc[17] = 0x00;
-
-    doc[18] = 0x00;
-    doc[19] = 0x00;
-
-    doc[20] = 0x00;
-    doc[21] = 0x00;
-
-    doc[22] = 0x00; // 0.0
-    doc[23] = 0x00;
-    doc[24] = 0x00;
-    doc[25] = 0x00;
-    doc[26] = 0x00;
-    doc[27] = 0x00;
-    doc[28] = 0x00;
-    doc[29] = 0x00;
-
-    //EOF marker
-    doc[30] = 0x0A;
-    doc[31] = 0x00;
-
-    doc[32] = 0x00;
-    doc[33] = 0x00;
-
-    return doc;
+    try {
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      //bos.write(something);
+      workbook.write(bos);
+      workbook.close();
+      bos.close();
+      byte[] arr = bos.toByteArray();
+      return arr;
+    } catch (IOException ioe) {
+      System.err.println("Excel error: "+ioe.toString());
+      return null;
+    }
   }
 
 
