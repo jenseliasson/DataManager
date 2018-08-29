@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.Properties;
 import java.util.Calendar;
 
@@ -42,6 +43,15 @@ import javax.activation.DataSource;
 import javax.activation.FileDataSource;
 
 import java.util.Iterator;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -488,8 +498,17 @@ public class Historian {
       /* generate XML message */
       boolean header_sent = false;
 
+      //BUG use XML and JSON serializers instead
       long BT = -1;
       int mid;
+
+      DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+      DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+      Document doc = docBuilder.newDocument();
+      doc.setXmlStandalone(true);
+      Element rootElement = null;
+      JSONArray reslist = new JSONArray();
+      JSONObject obj;
       while(rsm.next() && results > 0){	
 	mid = rsm.getInt("id");
 	int bt = rsm.getInt("ts");
@@ -498,13 +517,34 @@ public class Historian {
 	if (header_sent == false) {
 	  header_sent = true;
 	  if (format.equals("xml")) {
-	    res = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-	    res += "<senml xmlns=\"urn:ietf:params:xml:ns:senml\" bn=\""+hwaddr+"\"\n\tbt=\""+bt+"\" ver=\"1\">\n";
+	    //res = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+	    //res += "<senml xmlns=\"urn:ietf:params:xml:ns:senml\" bn=\""+hwaddr+"\"\n\tbt=\""+bt+"\" ver=\"1\">\n";
+	    rootElement = doc.createElement("sensml");
+	    doc.appendChild(rootElement);
+	    Attr attr = doc.createAttribute("xmlns");
+	    attr.setValue("urn:ietf:params:xml:ns:senml");
+	    rootElement.setAttributeNode(attr);
+
+	    Element etag = doc.createElement("senml");
+	    rootElement.appendChild(etag);
+	    attr = doc.createAttribute("bn");
+	    attr.setValue(hwaddr);
+	    etag.setAttributeNode(attr);
+	    attr = doc.createAttribute("bt");
+	    attr.setValue(bt + "");
+	    etag.setAttributeNode(attr);
+
 	    BT = bt;
 	  } else if (format.equals("json")) {
-	    res = "[{\"bn\": \""+hwaddr+"\", \"bt\": "+bt+",\n";
+	    //res = "[{\"bn\": \""+hwaddr+"\", \"bt\": "+bt+",\n";
+	    obj = new JSONObject();
+
 	    BT = bt;
-	    res += "  \"bver\": 5},\n";
+	    //res += "  \"bver\": 5},\n";
+	    obj.put("bn", hwaddr);
+	    obj.put("bt", bt);
+	    obj.put("bver", 5);
+	    reslist.add(obj);
 	  }
 	}
 
@@ -523,23 +563,48 @@ public class Historian {
 	  String _value = rs.getString("v");
 
 	  if (format.equals("xml")) {
-	    res += "  <e n=\""+n+"\" u=\""+_unit+"\" t=\""+(t-BT)+"\" v=\""+_value+"\"/>\n";
+	    //res += "  <e n=\""+n+"\" u=\""+_unit+"\" t=\""+(t-BT)+"\" v=\""+_value+"\"/>\n";
+	    Element etag = doc.createElement("senml");
+	    rootElement.appendChild(etag);
+	    Attr attr = doc.createAttribute("n");
+	    attr.setValue(n);
+	    etag.setAttributeNode(attr);
+	    attr = doc.createAttribute("t");
+	    attr.setValue("" + (t-BT));
+	    etag.setAttributeNode(attr);
+	    attr = doc.createAttribute("v");
+	    attr.setValue(_value);
+	    etag.setAttributeNode(attr);
+	    attr = doc.createAttribute("u");
+	    attr.setValue(_unit);
+	    etag.setAttributeNode(attr);
 	  } else if (format.equals("json")) {
-	    res += "  { \"n\": \""+n+"\", \"u\": \""+_unit+"\", \"t\": "+(t-BT)+",\"v\": "+_value +" },\n";
+	    //res += "  { \"n\": \""+n+"\", \"u\": \""+_unit+"\", \"t\": "+(t-BT)+",\"v\": "+_value +" },\n";
+	    obj = new JSONObject();
+	    obj.put("n", n);
+	    obj.put("u", _unit);
+	    obj.put("t", t-BT);
+	    obj.put("v", _value);
+	    reslist.add(obj);
 	  }
-	  results --;
+	  results--;
 	}
 	rs.close();
       }
       rsm.close();
 
       if (format.equals("xml")) {
-	res += "</senml>";
+	//res += "</senml>";
+	DOMSource domSource = new DOMSource(doc);
+	StringWriter writer = new StringWriter();
+	StreamResult result = new StreamResult(writer);
+	TransformerFactory tf = TransformerFactory.newInstance();
+	Transformer transformer = tf.newTransformer();
+	transformer.transform(domSource, result);
+	res = writer.toString();
+	//res = doc.toString();
       } else if (format.equals("json")) {
-	res = res.substring(0, res.length()-2);
-	res += "\n";
-
-	res += "]";
+	res = reslist.toString().replace("\\/", "/"); //change stupid JSON serialization characters
       }
 
       stmt.close();

@@ -51,12 +51,13 @@ public class Main {
   String[] args;
  
   Logger logger = null;
+
   
   public Main(String[] args)  {
     this.args = args;
-    logger = LogManager.getRootLogger();
-  
+    logger = LogManager.getRootLogger(); 
   }
+
 
   public boolean execute() {
     logger.info("DataManager system starting up"); 
