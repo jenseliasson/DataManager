@@ -102,7 +102,7 @@ public class StorageHTTPResource extends HttpServlet
 
       int id=0;
       while (request.getParameter("sig"+id) != null) {
-	//System.out.println("sig"+id+": " + request.getParameter("sig"+id));
+	System.out.println("sig"+id+": " + request.getParameter("sig"+id));
 	signals.add(request.getParameter("sig"+id));
 	id++;
       }
