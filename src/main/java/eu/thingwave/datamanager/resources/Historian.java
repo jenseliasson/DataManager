@@ -628,17 +628,138 @@ public class Historian {
   }
 
   /**
-   * \fn public byte[] getExcelDatafromPeer(String hwaddr, int results, String[] channels, String[] conditions, String start, String stop)
-   * \brief Returns Excel encoded data
+   * @fn public byte[] getExcelDatafromPeer(String hwaddr, int results, String[] channels, String[] conditions, String start, String stop)
+   * @brief Returns Excel encoded data
    *
    */
   public byte[] getExcelDatafromPeer(String hwaddr, int results, String[] channels, String[] conditions, String start, String stop) {
+    XSSFWorkbook workbook = new XSSFWorkbook();
+    XSSFSheet sheet = null;
+    logger.info("getExcelDatafromPeer: channels.length="+channels.length);
+    if (channels.length == 0) {
+      sheet= getExcelSheetData(workbook, hwaddr, results, start, stop);
+
+    } else {
+      for(int i = 0; i<channels.length; i++) {
+	logger.info("sig"+i+" = "+channels[i]);
+	getExcelSheetSigData(workbook, hwaddr, results, channels[i], conditions, start, stop);
+      }
+    }
+
+    try {
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      //bos.write(something);
+      workbook.write(bos);
+      workbook.close();
+      bos.close();
+      byte[] arr = bos.toByteArray();
+      return arr;
+    } catch (IOException ioe) {
+      System.err.println("Excel error: "+ioe.toString());
+      return null;
+    }
+  
+  }
+
+  public XSSFSheet getExcelSheetSigData(XSSFWorkbook workbook, String hwaddr, int results, String signal, String[] conditions, String start, String stop) {
     Connection conn = null;
     Statement stmt = null;
     boolean db_ok = true;
     String res = "";
 
-    XSSFWorkbook workbook = new XSSFWorkbook();
+    XSSFSheet sheet = workbook.createSheet(signal);
+    logger.info("Generating Excel file");
+
+    try {
+      Class.forName("com.mysql.jdbc.Driver");
+      conn = DriverManager.getConnection("jdbc:mysql://"+prop.getProperty("dburl", "localhost")+"/" + prop.getProperty("database"), prop.getProperty("dbuser"), prop.getProperty("dbpassword"));
+
+      int id = macToID(hwaddr, conn);
+      if ( id == -1 ) {
+	return null; //generateErrorMessage(1); throw Ex
+      }
+
+      stmt = conn.createStatement();
+      String sql = "SELECT id, ts FROM iot_messages WHERE did="+id+" AND ts > UNIX_TIMESTAMP('"+start+"') AND ts < UNIX_TIMESTAMP('"+stop+"') ORDER BY ts DESC LIMIT "+results+";";
+      System.out.println("SQL: "+sql);
+      ResultSet rsm = stmt.executeQuery(sql);
+
+      int mid;
+      int maxrows=0;
+      int current_column = 0;
+
+      Row row = sheet.createRow(0);
+      Cell cell = row.createCell(current_column);
+      cell.setCellValue((String) "t");
+      cell = row.createCell(current_column + 1);
+      cell.setCellValue((String) "n");
+      cell = row.createCell(current_column + 2);
+      cell.setCellValue((String) "v");
+      cell = row.createCell(current_column + 3);
+      cell.setCellValue((String) "u");
+
+
+      int rowid = 1;
+      while(rsm.next() && results > 0) {
+	mid = rsm.getInt("id");
+	int bt = rsm.getInt("ts");
+	System.out.println("Message id (mid): "+mid);
+
+	stmt = conn.createStatement();
+	sql = "SELECT * FROM iot_entries WHERE did="+id+" AND mid="+mid+" AND n='"+signal+"' ORDER BY t DESC LIMIT "+results+";";
+	System.out.println("SQL: "+sql);
+
+	ResultSet rs = stmt.executeQuery(sql);
+
+	while(rs.next()){	
+	  int _id  = rs.getInt("id");
+	  long t  = rs.getInt("t");
+	  String _dev = rs.getString("did");
+	  String n = rs.getString("n");
+	  String _unit = rs.getString("u");
+	  String _value = rs.getString("v");
+
+	  if (rowid >= maxrows) {
+	    row = sheet.createRow(rowid);
+	    maxrows = rowid;
+	  } else {
+	    row = sheet.getRow(rowid);
+	  }
+	  System.out.println("Row: "+rowid);
+	  cell = row.createCell(current_column + 0);
+	  cell.setCellValue((Long) t);
+	  cell = row.createCell(current_column + 1);
+	  cell.setCellValue((String) n);
+	  cell = row.createCell(current_column + 2);
+	  cell.setCellValue((String) _value);
+	  cell = row.createCell(current_column + 3);
+	  cell.setCellValue((String) _unit);
+
+	  rowid++;
+	}
+
+      }
+      current_column += 4;
+
+    } catch(SQLException se){
+      se.printStackTrace();
+      return null; //generateErrorMessage(0); throw exception instead
+    } catch(Exception e){
+      //Handle errors for Class.forName
+      e.printStackTrace();
+      return null; //generateErrorMessage(-1);
+    }
+
+    return sheet;
+
+  }
+
+  public XSSFSheet getExcelSheetData(XSSFWorkbook workbook, String hwaddr, int results, String start, String stop) {
+    Connection conn = null;
+    Statement stmt = null;
+    boolean db_ok = true;
+    String res = "";
+
     XSSFSheet sheet = workbook.createSheet("Sheet1");
     logger.info("Generating Excel file");
 
@@ -691,7 +812,6 @@ public class Historian {
 	  String _unit = rs.getString("u");
 	  String _value = rs.getString("v");
 
-	  //Row row = null;
 	  if (rowid >= maxrows) {
 	    row = sheet.createRow(rowid);
 	    maxrows = rowid;
@@ -723,22 +843,8 @@ public class Historian {
       return null; //generateErrorMessage(-1);
     }
 
-
-
-
-    try {
-      ByteArrayOutputStream bos = new ByteArrayOutputStream();
-      //bos.write(something);
-      workbook.write(bos);
-      workbook.close();
-      bos.close();
-      byte[] arr = bos.toByteArray();
-      return arr;
-    } catch (IOException ioe) {
-      System.err.println("Excel error: "+ioe.toString());
-      return null;
-    }
-  }
+    return sheet;
+   }
 
 
   synchronized public byte[] getFilefromPeer(String hwaddr, int id, String filename, Connection conn) {

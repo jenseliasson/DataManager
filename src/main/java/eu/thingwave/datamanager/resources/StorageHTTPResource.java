@@ -102,7 +102,7 @@ public class StorageHTTPResource extends HttpServlet
 
       int id=0;
       while (request.getParameter("sig"+id) != null) {
-	System.out.println("sig"+id+": " + request.getParameter("sig"+id));
+	//System.out.println("sig"+id+": " + request.getParameter("sig"+id));
 	signals.add(request.getParameter("sig"+id));
 	id++;
       }
@@ -194,7 +194,7 @@ public class StorageHTTPResource extends HttpServlet
 	response.addHeader("Content-Disposition", "attachment;filename=file.csv");
 
 	String[] sigs = signals.toArray(new String[signals.size()]);
-	res = historian.getCSVDatafromPeer(path, results, sigs, null, start_date, end_date);
+	res = historian.getCSVDatafromPeer(path, results, sigs, null, start_date, end_date); //BUG: no support for conditions
 	response.getWriter().println(res);
 
       } else if (format.equals("excel")) {
@@ -206,7 +206,7 @@ public class StorageHTTPResource extends HttpServlet
 	response.addHeader("Content-Transfer-Encoding", "binary");
 
 	String[] sigs = signals.toArray(new String[signals.size()]);
-	byte[] doc = historian.getExcelDatafromPeer(path, results, sigs, null, start_date, end_date);
+	byte[] doc = historian.getExcelDatafromPeer(path, results, sigs, null, start_date, end_date); //BUG: no support for conditions
 	if (doc != null) {
 	  OutputStream os = response.getOutputStream();
 	  os.write(doc, 0, doc.length);
